@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samzinho Tech - Download APK</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #0b1020, #151f3b);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: #ff0033;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      font-weight: 800;
+      box-shadow: 0 8px 24px rgba(255,0,51,.3);
+    }
+    h1 { margin: 8px 0 8px; font-size: 28px; }
+    .subtitle { color: #cfd6ee; line-height: 1.5; margin-bottom: 22px; }
+    .step {
+      text-align: left;
+      background: rgba(255,255,255,.06);
+      border-radius: 14px;
+      padding: 14px;
+      margin: 12px 0;
+      color: #e9edff;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 15px 18px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 12px;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    .btn:active { transform: scale(.98); }
+    .youtube { background: #ff0033; color: white; }
+    .download { background: #20c46b; color: #07170e; }
+    .locked { background: #59627a; color: #d8dced; cursor: not-allowed; opacity: .75; }
+    #countdownBox {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      color: #dfe5ff;
+    }
+    .count { font-size: 28px; font-weight: 900; margin: 6px 0; }
+    .note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #aeb8d9;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">S</div>
+    <h1>SAMZINHO TECH</h1>
+    <p class="subtitle">Apoie o canal e depois continue para o download do APK.</p>
+
+    <div class="step"><strong>1.</strong> Toque no botão abaixo e inscreva-se no canal.</div>
+
+    <a
+      id="subscribeBtn"
+      class="btn youtube"
+      href="https://youtube.com/@samzinhotech?si=IpUtZ4ZmfPqNkXBQ"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      ▶ INSCREVER-SE NO CANAL
+    </a>
+
+    <div id="countdownBox">
+      <div>Quando voltar para esta página, aguarde:</div>
+      <div class="count"><span id="seconds">10</span>s</div>
+      <div>O botão de download será liberado automaticamente.</div>
+    </div>
+
+    <div class="step"><strong>2.</strong> Depois da contagem, toque em “BAIXAR APK”.</div>
+
+    <button id="downloadBtn" class="btn locked" disabled>
+      🔒 DOWNLOAD BLOQUEADO
+    </button>
+
+    <p class="note">
+      Esta página não verifica automaticamente se a inscrição foi concluída.
+      O botão é liberado após a visita ao canal e a contagem.
+    </p>
+  </main>
+
+  <script>
+    const subscribeBtn = document.getElementById("subscribeBtn");
+    const countdownBox = document.getElementById("countdownBox");
+    const secondsEl = document.getElementById("seconds");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    let started = false;
+
+    subscribeBtn.addEventListener("click", function () {
+      if (started) return;
+      started = true;
+      countdownBox.style.display = "block";
+
+      let seconds = 10;
+      secondsEl.textContent = seconds;
+
+      const timer = setInterval(() => {
+        seconds -= 1;
+        secondsEl.textContent = seconds;
+
+        if (seconds <= 0) {
+          clearInterval(timer);
+          downloadBtn.disabled = false;
+          downloadBtn.className = "btn download";
+          downloadBtn.textContent = "⬇ BAIXAR APK";
+        }
+      }, 1000);
+    });
+
+    downloadBtn.addEventListener("click", function () {
+      if (!downloadBtn.disabled) {
+        window.location.href =
+          "https://drive.google.com/file/d/1LECAflrWvcmd_2SgWPqZBBFPpFAB4C-X/view?usp=drivesdk";
+      }
+    });
+  </script>
+</body>
+</html>
