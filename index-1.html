@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11162a">
+  <title>Samzinho Tech - Verificação YouTube</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #080b16, #182342); color: #fff;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .card {
+      width: 100%; max-width: 460px; background: rgba(255,255,255,.075);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 24px;
+      padding: 26px 20px; text-align: center; box-shadow: 0 20px 55px rgba(0,0,0,.38);
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      width: 78px; height: 78px; border-radius: 50%; margin: 0 auto 12px;
+      display: grid; place-items: center; background: #ff0033;
+      font-size: 34px; font-weight: 900;
+    }
+    h1 { margin: 8px 0 6px; font-size: 27px; }
+    .sub { margin: 0 0 18px; color: #ced6f3; line-height: 1.5; }
+    .box {
+      background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px; padding: 15px; margin: 13px 0; text-align: left;
+    }
+    .btn {
+      width: 100%; display: block; border: 0; border-radius: 14px;
+      padding: 15px 16px; margin-top: 12px; font-size: 15px;
+      font-weight: 800; cursor: pointer; text-decoration: none; text-align: center;
+    }
+    .google { background: white; color: #182033; }
+    .youtube { background: #ff0033; color: white; }
+    .download { background: #28d17c; color: #06170e; }
+    .secondary { background: #394460; color: white; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    #status {
+      display: none; margin-top: 15px; padding: 14px; border-radius: 14px;
+      line-height: 1.45; font-weight: 700;
+    }
+    .ok { display:block !important; background: rgba(34,197,94,.17); border:1px solid rgba(34,197,94,.45); }
+    .no { display:block !important; background: rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.45); }
+    .err { display:block !important; background: rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); }
+    .wait { display:block !important; background: rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.4); }
+    .small { color: #aeb9da; font-size: 12px; line-height: 1.5; margin-top: 15px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">S</div>
+    <h1>SAMZINHO TECH</h1>
+    <p class="sub">Entre com sua conta Google para verificar se você já acompanha o canal no YouTube.</p>
+
+    <div class="box">
+      <strong>1. Verifique sua inscrição</strong>
+      <p style="margin:8px 0 0;color:#ced6f3;font-size:14px;">
+        O Google pedirá permissão somente de leitura das suas inscrições do YouTube.
+      </p>
+    </div>
+
+    <button id="verifyBtn" class="btn google" disabled>
+      🔐 ENTRAR COM GOOGLE E VERIFICAR
+    </button>
+
+    <div id="status"></div>
+
+    <a id="channelBtn" class="btn youtube hidden"
+       href="https://youtube.com/@samzinhotech" target="_blank" rel="noopener noreferrer">
+      ▶ VISITAR / INSCREVER-SE NO CANAL
+    </a>
+
+    <button id="checkAgainBtn" class="btn secondary hidden">
+      🔄 VERIFICAR NOVAMENTE
+    </button>
+
+    <div class="box">
+      <strong>2. Download</strong>
+      <p style="margin:8px 0 0;color:#ced6f3;font-size:14px;">
+        O download fica disponível separadamente da verificação da inscrição.
+      </p>
+    </div>
+
+    <a class="btn download"
+       href="https://drive.google.com/file/d/1LECAflrWvcmd_2SgWPqZBBFPpFAB4C-X/view?usp=drivesdk"
+       target="_blank"
+       rel="noopener noreferrer">
+      ⬇ BAIXAR APK
+    </a>
+
+    <p class="small">
+      A página não recebe sua senha do Google. A autorização acontece diretamente pelo Google.
+      O acesso solicitado é somente para consultar inscrições do YouTube.
+    </p>
+  </main>
+
+<script>
+  const CLIENT_ID = "876121852255-2ksmu96k50odh66rkutthspm6krj4vnh.apps.googleusercontent.com";
+  const CHANNEL_ID = "UCR57Lxbapcm_z7ENdSkZBfA";
+  const SCOPE = "https://www.googleapis.com/auth/youtube.readonly";
+
+  let tokenClient;
+  let accessToken = null;
+
+  const verifyBtn = document.getElementById("verifyBtn");
+  const statusBox = document.getElementById("status");
+  const channelBtn = document.getElementById("channelBtn");
+  const checkAgainBtn = document.getElementById("checkAgainBtn");
+
+  function setStatus(type, message) {
+    statusBox.className = type;
+    statusBox.textContent = message;
+  }
+
+  function initGoogle() {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+      setTimeout(initGoogle, 250);
+      return;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPE,
+      callback: async (response) => {
+        if (response.error) {
+          setStatus("err", "Não foi possível concluir a autorização: " + response.error);
+          return;
+        }
+        accessToken = response.access_token;
+        await checkSubscription();
+      },
+      error_callback: (err) => {
+        setStatus("err", "A janela do Google foi fechada ou ocorreu um erro na autorização.");
+        console.error(err);
+      }
+    });
+
+    verifyBtn.disabled = false;
+  }
+
+  verifyBtn.addEventListener("click", () => {
+    setStatus("wait", "Abrindo o Google para autorização...");
+    tokenClient.requestAccessToken({ prompt: "select_account" });
+  });
+
+  checkAgainBtn.addEventListener("click", async () => {
+    if (accessToken) {
+      await checkSubscription();
+    } else {
+      tokenClient.requestAccessToken({ prompt: "select_account" });
+    }
+  });
+
+  async function checkSubscription() {
+    setStatus("wait", "Verificando sua inscrição no YouTube...");
+    channelBtn.classList.add("hidden");
+    checkAgainBtn.classList.add("hidden");
+
+    const url =
+      "https://www.googleapis.com/youtube/v3/subscriptions" +
+      "?part=snippet" +
+      "&mine=true" +
+      "&forChannelId=" + encodeURIComponent(CHANNEL_ID) +
+      "&maxResults=1";
+
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": "Bearer " + accessToken,
+          "Accept": "application/json"
+        }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          accessToken = null;
+          setStatus("err", "Sua autorização expirou. Toque em verificar novamente.");
+          checkAgainBtn.classList.remove("hidden");
+          return;
+        }
+
+        const reason =
+          data?.error?.errors?.[0]?.reason ||
+          data?.error?.message ||
+          "erro desconhecido";
+
+        setStatus("err", "Não foi possível verificar agora. Motivo: " + reason);
+        checkAgainBtn.classList.remove("hidden");
+        return;
+      }
+
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        setStatus("ok", "✅ Você já é inscrito no SAMZINHO TECH. Obrigado pelo apoio!");
+        checkAgainBtn.classList.remove("hidden");
+      } else {
+        setStatus("no", "❌ Esta conta ainda não aparece como inscrita no SAMZINHO TECH.");
+        channelBtn.classList.remove("hidden");
+        checkAgainBtn.classList.remove("hidden");
+      }
+
+    } catch (e) {
+      console.error(e);
+      setStatus("err", "Falha de conexão ao verificar. Confira a internet e tente novamente.");
+      checkAgainBtn.classList.remove("hidden");
+    }
+  }
+
+  window.addEventListener("load", initGoogle);
+</script>
+</body>
+</html>
